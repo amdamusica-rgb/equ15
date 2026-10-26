@@ -1,105 +1,83 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EQ 15 BAND LITE</title>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EQ 15 LITE FIX</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#000;color:#fff;font-family:sans-serif;padding:8px}
-.box{border:2px solid #00ffff;border-radius:12px;padding:8px;margin-bottom:8px;background:#111}
-.btn{border:none;border-radius:10px;padding:12px;font-weight:bold;width:100%;margin:5px 0}
-.yellow{background:#ffeb00;color:#000}
-.cyan{background:#00ffff;color:#000}
-.audio{width:100%;margin:8px 0}
-.item{background:#00ffff;color:#000;padding:8px;border-radius:8px;margin:4px 0;display:flex;justify-content:space-between;font-weight:bold}
-.eq-scroll{display:flex;gap:4px;overflow-x:auto;padding:10px 5px;background:#000;border-radius:10px}
-.eq-col{min-width:44px;text-align:center;background:#1a1a1a;border-radius:8px;padding:6px 2px;border:1px solid #333}
-.eq-col input{width:32px;height:110px}
-.eq-col label{font-size:10px;color:#ffeb00;display:block;font-weight:bold}
-.val{font-size:12px;font-weight:bold}
-.presets{display:flex;gap:4px;margin-top:8px}
-.presets button{flex:1;padding:10px 2px;border-radius:8px;border:none;font-weight:bold;font-size:11px}
-</style>
-</head>
-<body>
+body{background:#000;color:#fff;font-family:sans-serif;padding:10px;margin:0}
+.box{border:2px solid #0ff;border-radius:12px;padding:10px;background:#111;margin-bottom:10px}
+.btn{width:100%;padding:14px;border-radius:10px;border:none;font-weight:bold;font-size:16px;margin:5px 0}
+.y{background:#ff0;color:#000}
+.c{background:#0ff;color:#000}
+audio{width:100%;margin:10px 0}
+.swrap{display:flex;overflow-x:auto;gap:5px;padding:10px;background:#000;border-radius:10px}
+.col{min-width:48px;background:#222;border-radius:8px;padding:6px;text-align:center;border:1px solid #444}
+.col input{width:30px;height:100px}
+.col b{font-size:11px;color:#ff0;display:block}
+.col span{font-size:12px;font-weight:bold}
+.pres{display:flex;gap:5px;margin-top:8px}
+.pres button{flex:1;padding:12px 2px;border-radius:8px;border:none;font-weight:bold}
+</style></head><body>
 <div class="box">
-<input type="file" id="file" accept="audio/*" multiple style="display:none">
-<button class="btn yellow" onclick="document.getElementById('file').click()">+ TAMBAH LAGU</button>
-<audio id="audio" class="audio" controls></audio>
-<button id="eqBtn" class="btn cyan">EQ 15 BAND LITE ON ✅</button>
-<div id="plist"></div>
-<div style="color:#0f0;text-align:center;font-weight:bold"><span id="count">0 lagu</span></div>
+<button class="btn y" onclick="document.getElementById('f').click()">+ TAMBAH LAGU</button>
+<input type="file" id="f" accept="audio/*" multiple style="display:none">
+<audio id="a" controls></audio>
+<button class="btn c" id="e">EQ 15 BAND LITE ON</button>
+<div id="pl"></div>
+<div style="color:#0f0;text-align:center" id="cnt">0 lagu</div>
 </div>
 <div class="box">
-<div class="eq-scroll" id="eqContainer"></div>
-<div class="presets">
-<button onclick="preset('flat')" style="background:#444;color:#fff">FLAT</button>
-<button onclick="preset('bass')" style="background:#00ffff">BASS</button>
-<button onclick="preset('vocal')" style="background:#ffeb00">VOCAL</button>
-<button onclick="preset('treble')" style="background:#f0f;color:#fff">TREBLE</button>
-<button onclick="preset('smile')" style="background:#0f0">SMILE</button>
+<div class="swrap" id="eq"></div>
+<div class="pres">
+<button onclick="P(0)" style="background:#555;color:#fff">FLAT</button>
+<button onclick="P(1)" style="background:#0ff">BASS</button>
+<button onclick="P(2)" style="background:#ff0">VOCAL</button>
+<button onclick="P(3)" style="background:#f0f;color:#fff">TREBLE</button>
+<button onclick="P(4)" style="background:#0f0">SMILE</button>
 </div>
-<div style="color:#ffeb00;font-size:10px;text-align:center;margin-top:6px">25 40 63 100 160 250 400 630 1K 1.6K 2.5K 4K 6.3K 10K 16K Hz</div>
+<div style="text-align:center;color:#ff0;font-size:11px;margin-top:6px">25 40 63 100 160 250 400 630 1K 1.6K 2.5K 4K 6.3K 10K 16K Hz</div>
 </div>
 <script>
-const freqs=[25,40,63,100,160,250,400,630,1000,1600,2500,4000,6300,10000,16000];
-let audio=document.getElementById('audio');
-let ctx,filters=[],files=[];
-function initAudio(){
- if(ctx) return;
- ctx=new(window.AudioContext||window.webkitAudioContext)();
- let src=ctx.createMediaElementSource(audio);
- let prev=src;
- filters=[];
- freqs.forEach((f,i)=>{
-   let fl=ctx.createBiquadFilter();
-   if(i==0){fl.type='lowshelf';fl.frequency.value=f}
-   else if(i==14){fl.type='highshelf';fl.frequency.value=f}
-   else{fl.type='peaking';fl.frequency.value=f;fl.Q.value=1}
-   fl.gain.value=0;prev.connect(fl);prev=fl;filters.push(fl);
- });
- prev.connect(ctx.destination);
-}
-function buildEQ(){
- let c=document.getElementById('eqContainer');
- c.innerHTML=freqs.map((f,i)=>{
-   let lb=f>=1000?(f/1000)+'K':f;
-   return `<div class="eq-col"><div class="val" id="v${i}">0</div><input type="range" id="s${i}" min="-12" max="12" value="0" oninput="setGain(${i},this.value)"><label>${lb}</label></div>`
- }).join('');
-}
-function setGain(i,v){
- if(!ctx) initAudio();
- if(filters[i]) filters[i].gain.value=parseInt(v);
- let e=document.getElementById('v'+i);e.textContent=v>0?'+'+v:v;
- e.style.color=v>0?'#0f0':v<0?'#f00':'#fff';
- if(ctx&&ctx.state=='suspended') ctx.resume();
-}
-function preset(t){
- let m={
-   flat:[0,0,0,0,0,0,0],
-   bass:[6,5,4,3,1,0,0,0,0,0,-1],
-   vocal:[-1,-1,0,0,1,2,3,4,4,3,2,1,0,0,0],
-   treble:[-2,-1,0,0,0,0,0,0,0,1,2,3,4,5,6],
-   smile:[5,4,2,0,-1,-2,-2,-1,0,0,1,2,3,4,5]
- };
- m[t].forEach((v,i)=>{document.getElementById('s'+i).value=v;setGain(i,v);});
-}
-document.getElementById('file').addEventListener('change',e=>{
- files=[...files,...Array.from(e.target.files)];
- let pl=document.getElementById('plist');
- pl.innerHTML=files.map((f,i)=>`<div class="item" onclick="loadFile(${i})"><span>${i+1}.${f.name.slice(0,18)}</span><span onclick="event.stopPropagation();files.splice(${i},1);document.getElementById('count').textContent=files.length+' lagu';document.getElementById('plist').innerHTML=''" style="color:red"> X</span></div>`).join('');
- document.getElementById('count').textContent=files.length+' lagu';
- if(files.length) loadFile(0);
+let F=[25,40,63,100,160,250,400,630,1000,1600,2500,4000,6300,10000,16000];
+let A=document.getElementById('a'),C,FL=[],FS=[],PS=[[0,0,0,0,0,0,0],[6,5,4,3,1,0,0,0,0,0,-1],[-1,-1,0,0,1,2,3,4,4,3,2,1,0,0,0],[-2,-1,0,0,0,0,0,0,0,1,2,3,4,5,6],[5,4,2,0,-1,-2,-2,-1,0,0,1,2,3,4,5]];
+function I(){
+if(C) return;
+C=new(window.AudioContext||window.webkitAudioContext)();
+let S=C.createMediaElementSource(A),Pr=S;
+FL=[];
+F.forEach((f,i)=>{
+let B=C.createBiquadFilter();
+if(i==0){B.type='lowshelf';B.frequency.value=f}
+else if(i==14){B.type='highshelf';B.frequency.value=f}
+else{B.type='peaking';B.frequency.value=f;B.Q.value=1}
+B.gain.value=0;Pr.connect(B);Pr=B;FL.push(B);
 });
-function loadFile(i){
- let f=files[i];if(!f) return;
- audio.src=URL.createObjectURL(f);audio.play();initAudio();
- if(ctx&&ctx.state=='suspended') ctx.resume();
+Pr.connect(C.destination);
 }
-document.getElementById('eqBtn').addEventListener('click',()=>{initAudio();if(ctx.state=='suspended') ctx.resume();});
-audio.addEventListener('play',()=>{initAudio();if(ctx.state=='suspended') ctx.resume();});
-buildEQ();
-</script>
-</body>
-</html>
+let E=document.getElementById('eq');
+F.forEach((f,i)=>{
+let L=f>=1000?(f/1000)+'K':f;
+let D=document.createElement('div');D.className='col';
+D.innerHTML='<span id="v'+i+'">0</span><br><input type="range" id="s'+i+'" min="-12" max="12" value="0" oninput="G('+i+',this.value)"><br><b>'+L+'</b>';
+E.appendChild(D);
+});
+function G(i,v){
+if(!C) I();
+FL[i].gain.value=parseInt(v);
+let el=document.getElementById('v'+i);el.textContent=v>0?'+'+v:v;
+el.style.color=v>0?'#0f0':v<0?'#f00':'#fff';
+if(C.state=='suspended') C.resume();
+}
+function P(k){PS[k].forEach((v,i)=>{document.getElementById('s'+i).value=v;G(i,v);});}
+document.getElementById('f').addEventListener('change',function(e){
+FS=[...FS,...Array.from(e.target.files)];
+let H='';FS.forEach((f,i)=>{H+='<div style="background:#0ff;color:#000;padding:8px;border-radius:8px;margin:4px 0;font-weight:bold" onclick="L('+i+')">'+(i+1)+'.'+f.name.slice(0,20)+'</div>';});
+document.getElementById('pl').innerHTML=H;
+document.getElementById('cnt').textContent=FS.length+' lagu';
+if(FS.length) L(0);
+});
+function L(i){
+let f=FS[i];A.src=URL.createObjectURL(f);A.play();I();
+if(C.state=='suspended') C.resume();
+}
+document.getElementById('e').addEventListener('click',()=>{I();if(C.state=='suspended') C.resume();});
+A.addEventListener('play',()=>{I();if(C.state=='suspended') C.resume();});
+</script></body></html>
